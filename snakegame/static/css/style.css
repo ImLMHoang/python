@@ -1,0 +1,252 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f9f9f9;
+}
+
+/* Màn hình chào */
+#welcome-screen {
+    background: url('/static/images/welcome-bg.gif') no-repeat center center;
+    background-size: cover;
+    color: #ffffff;
+    height: 100vh; /* 100% */
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+#welcome-screen h1 {
+    font-size: 48px;
+    color: #ffffff;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+}
+
+#welcome-screen p {
+    font-size: 16px;
+    color: #ffffff;
+    margin: 5px 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+#welcome-screen button {
+    background-color: #c52f0d;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#welcome-screen button:hover {
+    background-color: #bb1919;
+    transform: scale(1.1);
+}
+
+#welcome-screen button:active {
+    transform: scale(0.95);
+}
+
+
+#game-screen {
+    background: url('/static/images/game-bg.gif') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh; /* Chiều cao phủ kín toàn bộ màn hình */
+    width: 100vw;  /* Chiều rộng phủ kín toàn bộ màn hình */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+
+.main-container {
+    display: flex;
+    flex-direction: row; /* Sắp xếp ngang */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    gap: 10px; /* Khoảng cách giữa phần Ghi chú và Board Game */
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+
+
+#info {
+    width: 25%; /* Chiếm 25% chiều ngang màn hình */
+    max-width: 300px; /* Giới hạn chiều rộng */
+    height: auto;
+    background: rgba(255, 255, 255, 0.9); /* Nền trong suốt nhẹ */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+    text-align: left;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+
+#info h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#info ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#info li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#info .highlight {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
+    border-radius: 50%;
+}
+
+#info .palevioletred {
+    background-color: palevioletred;
+}
+
+#info .brown {
+    background-color: brown;
+}
+
+#info .green {
+    background-color: green;
+}
+
+#game-area {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Căn giữa theo chiều dọc */
+    align-items: center; /* Căn giữa theo chiều ngang */
+    gap: 20px; /* Khoảng cách giữa các phần tử */
+    max-width: 600px; /* Giới hạn chiều rộng cho bảng */
+    background: rgba(255, 255, 255, 0.8); /* Làm mờ nền */
+    border-radius: 10px;
+}
+
+
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    grid-template-rows: repeat(10, 30px);
+    gap: 2px;
+    margin: 0 auto; /* Căn giữa theo chiều ngang */
+    background-color: #eef3f7;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Thêm hiệu ứng đổ bóng */
+}
+
+
+.cell {
+    width: 30px;
+    height: 30px;
+    background-color: lightblue;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Thẻ ảnh và màu sắc */
+.snake-head {
+    background-image: url('../images/snake_head.gif');
+}
+
+.snake-body {
+    background-image: url('/static/images/snake_body.png');
+}
+
+.food {
+    background-image: url('../images/food.gif');
+}
+
+.obstacle {
+    background-image: url('../images/obstacle.gif');
+}
+
+/* Các nút điều khiển */
+.controls, .mode-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#pause-button {
+    background-color: orange;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+#pause-button:hover {
+    background-color: darkorange;
+}
+
+
+.mode-buttons button.selected {
+    background-color: #4CAF50; /* Màu xanh lá */
+    color: white;
+    font-weight: bold;
+    border: 2px solid #2E7D32; /* Tạo viền đậm hơn */
+}
+
+.mode-buttons button {
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.mode-buttons button:hover {
+    background-color: #f1f1f1;
+}
+
+.mode-buttons button:active {
+    transform: scale(0.95);
+}
+
+#score-container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+
