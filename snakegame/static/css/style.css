@@ -3,9 +3,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    height: 100vh;
+    width: 100vw;
     margin: 0;
     background-color: #f9f9f9;
+    overflow: hidden; 
 }
 
 /* Màn hình chào */
@@ -13,13 +15,14 @@ body {
     background: url('/static/images/welcome-bg.gif') no-repeat center center;
     background-size: cover;
     color: #ffffff;
-    height: 100vh; /* 100% */
+    height: 100vh;
     width: 100vw;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
+    background-size: cover;
     margin: 0;
     padding: 0;
 }
@@ -59,12 +62,12 @@ body {
     transform: scale(0.95);
 }
 
-
+/* Màn hình game */
 #game-screen {
     background: url('/static/images/game-bg.gif') no-repeat center center fixed;
     background-size: cover;
-    height: 100vh; /* Chiều cao phủ kín toàn bộ màn hình */
-    width: 100vw;  /* Chiều rộng phủ kín toàn bộ màn hình */
+    height: 100vh;
+    width: 100vw;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -74,34 +77,28 @@ body {
     padding: 0;
 }
 
-
 .main-container {
     display: flex;
-    flex-direction: row; /* Sắp xếp ngang */
-    justify-content: center; /* Căn giữa theo chiều ngang */
-    align-items: center; /* Căn giữa theo chiều dọc */
-    gap: 10px; /* Khoảng cách giữa phần Ghi chú và Board Game */
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
     width: 100%;
     height: 100%;
     padding: 20px;
     box-sizing: border-box;
 }
 
-
-
 #info {
-    width: 25%; /* Chiếm 25% chiều ngang màn hình */
-    max-width: 300px; /* Giới hạn chiều rộng */
+    width: 25%;
+    max-width: 300px;
     height: auto;
-    background: rgba(255, 255, 255, 0.9); /* Nền trong suốt nhẹ */
+    background: rgba(255, 255, 255, 0.9);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: left;
-    flex-direction: column;
-    justify-content: flex-start;
 }
-
 
 #info h2 {
     font-size: 18px;
@@ -144,28 +141,25 @@ body {
     text-align: center;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Căn giữa theo chiều dọc */
-    align-items: center; /* Căn giữa theo chiều ngang */
-    gap: 20px; /* Khoảng cách giữa các phần tử */
-    max-width: 600px; /* Giới hạn chiều rộng cho bảng */
-    background: rgba(255, 255, 255, 0.8); /* Làm mờ nền */
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
 }
-
-
 
 #game-board {
     display: grid;
     grid-template-columns: repeat(10, 30px);
     grid-template-rows: repeat(10, 30px);
     gap: 2px;
-    margin: 0 auto; /* Căn giữa theo chiều ngang */
+    margin: 0 auto;
     background-color: #eef3f7;
     border-radius: 10px;
     padding: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Thêm hiệu ứng đổ bóng */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 
 .cell {
     width: 30px;
@@ -176,7 +170,6 @@ body {
     background-position: center;
 }
 
-/* Thẻ ảnh và màu sắc */
 .snake-head {
     background-image: url('../images/snake_head.gif');
 }
@@ -214,12 +207,11 @@ body {
     background-color: darkorange;
 }
 
-
 .mode-buttons button.selected {
-    background-color: #4CAF50; /* Màu xanh lá */
+    background-color: #4CAF50;
     color: white;
     font-weight: bold;
-    border: 2px solid #2E7D32; /* Tạo viền đậm hơn */
+    border: 2px solid #2E7D32;
 }
 
 .mode-buttons button {
@@ -249,4 +241,101 @@ body {
     margin-top: 20px;
 }
 
+/* Màn hình đăng nhập */
+#login-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background: url('/static/images/login-bg.gif') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+#login-form {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 350px;
+    width: 100%;
+}
+
+#login-form h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+#login-form input[type="text"],
+#login-form input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 5px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#login-form button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#login-form button:hover {
+    background-color: #2980b9;
+}
+
+#leaderboard-container {
+    display: block;
+    visibility: visible;
+    margin: 20px auto;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    overflow: auto;
+}
+
+#leaderboard h2 {
+    color: gold; /* Màu vàng gold */
+    font-weight: bold; /* Chữ đậm */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* Hiệu ứng bóng chữ */
+    text-align: center; /* Căn giữa */
+    margin-bottom: 20px; /* Thêm khoảng cách dưới */
+}
+
+#leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#leaderboard th, #leaderboard td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+#leaderboard th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+#leaderboard tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#leaderboard tr:hover {
+    background-color: #f1f1f1;
+}

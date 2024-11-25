@@ -5,18 +5,32 @@ let currentMode = null;
 let isPaused = false;
 let astarTimeout = null; // Biến lưu ID của timeout khi chạy A*
 let autoMoveInterval = null; // Biến để lưu ID của interval
-let currentDirection = null; // Lưu hướng hiện tại
-
-// 
+let currentDirection = null; // Lưu hướng hiện tại 
 let scoreInterval = null;
-// 
+
 
 // Hiển thị bảng trò chơi khi nhấn nút Start Game
 function showGame() {
+    resetGameState();
     document.getElementById("welcome-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "block";
     startGame();
+    fetchLeaderboard(); 
 }
+
+function resetGameState() {
+    resetModeSelection();
+    isPaused = false;
+
+    // Dừng các interval hoặc timeout
+    if (autoMoveInterval) clearInterval(autoMoveInterval);
+    if (astarTimeout) clearTimeout(astarTimeout);
+    stopScoreUpdate();
+
+    // Đặt lại điểm số hiển thị về 0
+    document.getElementById("score-display").textContent = "0";
+}
+
 
 function startAutoMove() {
     if (autoMoveInterval) {
@@ -114,27 +128,37 @@ function renderBoard(board) {
     });
 }
 
-// Đặt lại kích thước bảng
+
 async function resetBoardSize() {
     const newSize = document.getElementById("board-size").value;
     boardSize = Math.min(14, Math.max(10, newSize)); // Đảm bảo kích thước hợp lệ
-    fetch('/api/create-board/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ boardSize: boardSize })
-    })
-    .then(response => response.json())
-    .then(data => {
-        renderBoard(data.board); // Vẽ bảng mới
-        document.getElementById("board-size-display").innerText = "Board Size: " + data.boardSize;
-        gameStarted = false; // Tắt trạng thái chơi
-        currentMode = null; // Đặt lại chế độ chơi
-        resetModeHighlight(); 
-    })
-    .catch(error => console.error('Error:', error));
-}   
+    resetModeSelection();
+
+    // Đặt lại điểm số
+    document.getElementById("score-display").textContent = "0";
+
+    // Gửi yêu cầu để tạo bảng mới
+    try {
+        const response = await fetch('/api/create-board/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ boardSize: boardSize }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            renderBoard(data.board); // Vẽ lại bảng mới
+            document.getElementById("board-size-display").innerText = "Board Size: " + data.boardSize;
+        } else {
+            console.error('Error in creating board:', response.status);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 
 // Chế độ người chơi
 function startPlayerMode() {
@@ -168,32 +192,34 @@ function startAStarMode() {
     startScoreUpdate();
     runAStarMode();
 }
-
-
+ 
 function gameOver(score) {
-    // console.log("Game over function called with score:", score); // Debug
-    if (confirm("Game Over! Your score: " + score + "\nDo you want to restart?")) {
-        // console.log("Sending request to restart game..."); // Debug log
-        fetch('/api/restart-game/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            // console.log("Restart game response:", data); 
-            renderBoard(data.board); // Vẽ bảng mới
-            document.getElementById("board-size-display").innerText = "Board Size: " + data.boardSize;
-            // gameStarted = false; // Tắt trạng thái chơi
-            currentMode = null; // Đặt lại chế độ chơi
-            resetModeHighlight(); 
-            stopScoreUpdate(); 
-        })
-        .catch(error => console.error('Error:', error));
-    }
-}
+    fetch("/api/game-over/", {
+        method: "GET"
+    }).then(response => response.json())
+      .then(data => {
+          if (data.gameOver) {
+              console.log("Game over data:", data);
+          } else {
+              console.error("Game over API did not return gameOver status.");
+          }
+      }).catch(error => {
+          console.error("Error in game-over API:", error);
+      });
 
+    // Hiển thị thông báo Game Over và hỏi người chơi có muốn chơi lại không
+    if (confirm("Game Over! Your score: " + score + "\nDo you want to restart?")) {
+        document.getElementById("score-display").textContent = "0";
+        restartGame();
+    } else {
+        resetGameState();
+        document.getElementById("welcome-screen").style.display = "block";
+        document.getElementById("game-screen").style.display = "none";
+        stopScoreUpdate();
+        currentMode = null;
+    }
+    fetchLeaderboard();
+}
 
 // Điều khiển rắn với A*
 async function runAStarMode() {
@@ -232,26 +258,49 @@ async function handleKeyPress(event) {
 
 
 async function restartGame() {
+    document.getElementById("score-display").textContent = "0";
+    resetModeSelection(); 
+
+    if (astarTimeout) {
+        clearTimeout(astarTimeout); // Dừng timeout của A*
+        astarTimeout = null;
+    }
+
     stopScoreUpdate(); // Đảm bảo không còn interval nào trước đó
     // console.log("Sending request to restart game..."); // Debug 
-    const response = await fetch('/api/restart-game/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
 
-    if (response.ok) {
-        const data = await response.json();
-        // console.log("Restart data:", data); // Debug 
+    try {
+        const response = await fetch('/api/restart-game/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
 
-        renderBoard(data.board);
-        document.getElementById("board-size-display").textContent = "Board Size: " + data.boardSize;    
-        // gameStarted = false;
-        currentMode = null;
-        stopScoreUpdate(); 
-    } else {
-        console.error("Error in restarting game:", response.status);
+        if (response.ok) {
+            const data = await response.json(); // Lấy dữ liệu JSON từ response
+            // console.log("Restart data:", data); // Debug 
+
+            console.log("Restart response:", data);
+
+            renderBoard(data.board);
+            document.getElementById("board-size-display").textContent = "Board Size: " + data.boardSize;
+
+            if (data.score === 0) {
+                document.getElementById("score-display").textContent = "0"; // Đặt lại điểm
+            } else {
+                document.getElementById("score-display").textContent = data.score || "0"; // Fallback
+            }
+
+            currentMode = null; // Đặt lại chế độ chơi
+            fetchLeaderboard();
+            
+        } else {
+            console.error("Error in restarting game:", response.status);
+        }
+    } catch (error) {
+        console.error("Error in restartGame fetch call:", error);
     }
 }
+
 
 function togglePause() {
     if (!currentMode) {
@@ -293,17 +342,15 @@ function togglePause() {
 }
 
 function highlightSelectedMode(mode) {
+    resetModeHighlight(); 
+
     // Lấy danh sách tất cả các nút chế độ
     const modeButtons = document.querySelectorAll(".mode-buttons button");
 
-    // Xóa class 'selected' từ tất cả các nút
-    modeButtons.forEach(button => button.classList.remove("selected"));
-
-    // Thêm class 'selected' vào nút phù hợp
     if (mode === "player") {
-        document.querySelector(".mode-buttons button:nth-child(1)").classList.add("selected");
-    } else if (mode === "astar") {
-        document.querySelector(".mode-buttons button:nth-child(2)").classList.add("selected");
+        modeButtons[0].classList.add("selected"); // Nút "Người chơi"
+    } else if (mode === "a_star") {
+        modeButtons[1].classList.add("selected"); // Nút "A*"
     }
 }
 
@@ -315,16 +362,14 @@ function resetModeHighlight() {
 
 // Từ moveSnake (snakeLogic.py)
 function updateScore() { 
-
-    // 
     if (!gameStarted) return;
-    // 
 
     fetch("/api/score") // Gọi API để lấy điểm từ backend
         .then(response => response.json())
         .then(data => {
             const scoreDisplay = document.getElementById("score-display");
             scoreDisplay.textContent = data.score; // Cập nhật điểm số trên giao diện
+            document.getElementById("score-display").textContent = data.score || "0";
         })
         .catch(error => console.error("Lỗi khi cập nhật điểm số:", error));
 }
@@ -348,3 +393,155 @@ function stopScoreUpdate() {
     }
 }
 
+
+async function fetchPlayerHistory() {
+    const response = await fetch("/api/player-history/");
+    const data = await response.json();
+
+    if (data.error) {
+        console.error("Error fetching player history:", data.error);
+        return;
+    }
+
+    const history = data.history;
+    const historyContainer = document.getElementById("history-container");
+    historyContainer.innerHTML = ""; // Xóa lịch sử cũ
+
+    history.forEach(entry => {
+        const historyItem = document.createElement("div");
+        historyItem.textContent = `Date: ${entry.date}, Score: ${entry.score}`;
+        historyContainer.appendChild(historyItem);
+    });
+
+    document.getElementById("player-history").style.display = "block";
+}
+
+// Hàm xử lý đăng nhập
+function login(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+
+    // Gửi yêu cầu đăng nhập tới backend
+    fetch("/api/login/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.message === "Login successful") {
+                // Hiển thị màn hình welcome khi đăng nhập thành công
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("welcome-screen").style.display = "block";
+            } else {
+                alert("Login failed. Please try again.");
+            }
+        })
+        .catch((error) => {
+            console.error("Error during login:", error);
+            alert("An error occurred. Please try again.");
+        });
+}
+
+async function fetchLeaderboard() {
+    try {
+        // console.log("Fetching leaderboard data..."); // Debug
+
+        const response = await fetch("/api/leaderboard/");
+        // console.log("Response status:", response.status); // Debug
+
+        if (!response.ok) {
+            // console.error("Failed to fetch leaderboard:", response.status); // Debug
+            return;
+        }
+
+        const data = await response.json();
+        // console.log("API response data:", data); // Debug
+
+        // Giả sử API trả về một object với key 'leaderboard'
+        const leaderboard = data.leaderboard || data;
+
+        if (!Array.isArray(leaderboard)) {
+            // console.error("Error: Leaderboard is not an array:", leaderboard); // Debug
+            return;
+        }
+
+        // console.log("Leaderboard data received:", leaderboard); // Debug
+
+        const leaderboardBody = document.getElementById("leaderboard-body");
+        if (!leaderboardBody) {
+            // console.error("Element with id 'leaderboard-body' not found!"); // Debug
+            return;
+        }
+
+        leaderboardBody.innerHTML = "";
+        leaderboard.forEach((entry, index) => {
+            // console.log(`Rendering rank: ${index + 1}, name: ${entry.name}, score: ${entry.score}`); // Debug
+
+            const row = document.createElement("tr");
+            const rankCell = document.createElement("td");
+            const nameCell = document.createElement("td");
+            const scoreCell = document.createElement("td");
+
+            rankCell.textContent = index + 1;
+            nameCell.textContent = entry.name;
+            scoreCell.textContent = entry.score;
+
+            row.appendChild(rankCell);
+            row.appendChild(nameCell);
+            row.appendChild(scoreCell);
+            leaderboardBody.appendChild(row);
+        });
+
+        // console.log("Final leaderboard content:", leaderboardBody.innerHTML); // Debug
+    } catch (error) {
+        // console.error("Error fetching leaderboard:", error); // Debug
+    }
+}
+
+
+// Chế độ người chơi
+function togglePlayerMode() {
+    if (currentMode === "player") {
+        resetModeSelection(); // Nếu đang chọn chế độ này, hủy chế độ
+        console.log("Player mode deselected");
+    } else {
+        resetModeSelection(); // Đặt lại các chế độ trước đó
+        currentMode = "player"; // Bật chế độ người chơi
+        highlightSelectedMode("player");
+        isAStarMode = false; // Đảm bảo chế độ A* không hoạt động
+        gameStarted = true;
+        console.log("Player mode selected");
+        startScoreUpdate(); // Bắt đầu cập nhật điểm
+        document.addEventListener("keydown", handleKeyPress); // Kích hoạt bàn phím
+    }
+}
+
+// Chế độ A* Run
+function toggleAStarMode() {
+    if (currentMode === "a_star") {
+        resetModeSelection(); // Nếu đang chọn chế độ này, hủy chế độ
+        console.log("A* mode deselected");
+    } else {
+        resetModeSelection(); // Đặt lại các chế độ trước đó
+        currentMode = "a_star"; // Bật chế độ AI
+        highlightSelectedMode("a_star");
+        isAStarMode = true;
+        gameStarted = true;
+        console.log("A* mode selected");
+        startScoreUpdate(); // Bắt đầu cập nhật điểm
+        runAStarMode(); // Chạy AI
+    }
+}
+
+function resetModeSelection() {
+    currentMode = null; // Xóa trạng thái chế độ hiện tại
+    resetModeHighlight(); // Xóa class "selected" của các nút
+    isAStarMode = false; // Đảm bảo chế độ AI tắt
+    document.removeEventListener("keydown", handleKeyPress); // Gỡ sự kiện bàn phím
+    stopScoreUpdate(); // Dừng cập nhật điểm
+}

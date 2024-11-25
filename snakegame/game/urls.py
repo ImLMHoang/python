@@ -3,7 +3,7 @@ from . import views
 
 from .views import (
     CreateBoardView, GameOverView, SetSpeedView,
-    GetBoardStateView, MoveSnakeView, AStarMoveView, RestartGameView, GetScoreView
+    GetBoardStateView, MoveSnakeView, AStarMoveView, RestartGameView, GetScoreView, LoginView, PlayerHistoryView, LeaderboardView
 ) 
 
 urlpatterns = [
@@ -16,5 +16,7 @@ urlpatterns = [
     path('api/a_star_move/', AStarMoveView.as_view(), name='a_star_move'),
     path('api/restart-game/', RestartGameView.as_view(), name='restart-game'),
     path('api/score/', GetScoreView.as_view(), name='get-score'),
-
+    path('api/login/', LoginView.as_view(), name='login'),
+    path('api/player-history/', PlayerHistoryView.as_view(), name='player_history'),
+    path('api/leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
 ]

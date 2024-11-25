@@ -4,9 +4,37 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import SnakeLogicSerializer
 from .snakeLogic import SnakeLogic 
+from .firebase_helpers import save_player_history 
+from firebase_admin import firestore
+from django.http import JsonResponse
+
+
+db = firestore.client()
+
 
 def index(request):
     return render(request, 'index.html')
+ 
+class LoginView(APIView):
+    def post(self, request):
+        name = request.data.get("name")
+        email = request.data.get("email")
+
+        if not name or not email:
+            return Response({"error": "Name and email are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Tạo player_id từ email (chỉ lấy phần trước @)
+        player_id = email.split('@')[0]
+
+        # Lưu thông tin người chơi vào session
+        request.session["player_id"] = player_id
+        request.session["player_name"] = name
+        request.session["player_email"] = email
+
+        # print(f"Player ID: {player_id}, Name: {name}, Email: {email}")  # Debug
+
+        return Response({"message": "Login successful", "player_id": player_id}, status=status.HTTP_200_OK)
+    
 
 class CreateBoardView(APIView):
     def post(self, request):
@@ -26,17 +54,39 @@ class CreateBoardView(APIView):
         response_data = logic.get_game_state()
         return Response(response_data, status=status.HTTP_200_OK)
 
-        
 class GameOverView(APIView):
     def get(self, request):
-        logic = request.session.get('game_logic')
-        if not logic or not logic.gameOver:
+        state = request.session.get('game_logic')
+        if not state or not state['gameOver']:
             return Response({"error": "Game is still ongoing"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        # Lấy thông tin từ session
+        player_id = request.session.get("player_id", "guest")
+        name = request.session.get("player_name", "Guest")
+        email = request.session.get("player_email", "guest@example.com")
+
+        # Lưu lịch sử vào Firebase
+        save_player_history(player_id, name, email, state['score'])
+        # print(f"GameOver - Player ID: {player_id}, Name: {name}, Email: {email}, Score: {state['score']}") // debug
+
+
         return Response({
             "gameOver": True,
-            "score": logic.getScore()
+            "score": state['score']
         }, status=status.HTTP_200_OK)
+
+
+class PlayerHistoryView(APIView):
+    def get(self, request):
+        player_id = request.session.get('player_id', 'guest')
+        doc_ref = db.collection('players').document(player_id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return Response({"error": "Player not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(doc.to_dict(), status=status.HTTP_200_OK) 
+
 
 class SetSpeedView(APIView):
     def post(self, request):
@@ -141,17 +191,25 @@ class RestartGameView(APIView):
         # Tạo lại logic của trò chơi với boardSize từ session
         logic = SnakeLogic()
         logic.loadSnakeBoard(board_size)
+        
+        # # 
+        # print("After restarting game:")
+        # print("Score:", logic.score)
+        # print("Game Over status:", logic.gameOver)
+        # # debug
 
         # Lưu trạng thái trò chơi mới vào session
         request.session['game_logic'] = logic.get_game_state()
+        request.session.modified = True
 
         # Trả về trạng thái mới của trò chơi và boardSize cho frontend
         return Response({
             "board": logic.getBoard(),
-            "score": 0,  # Đặt lại điểm về 0
+            # "score": 0,  # Đặt lại điểm về 0
+            "score": logic.score,
             "boardSize": board_size
         }, status=status.HTTP_200_OK)
-
+        
 
 class GetScoreView(APIView):
     def get(self, request):
@@ -168,3 +226,40 @@ class GetScoreView(APIView):
         # Trả về điểm số hiện tại
         return Response({"score": logic.getScore()}, status=status.HTTP_200_OK)
 
+class LeaderboardView(APIView):
+    def get(self, request):
+        try:
+            # print("Fetching leaderboard data from Firestore...") # Debug
+            # Lấy tất cả các document trong collection 'players'
+            leaderboard_ref = db.collection('players')
+            docs = leaderboard_ref.stream()
+
+            leaderboard = []
+
+            for doc in docs:
+                data = doc.to_dict()
+                name = data.get("name", "Unknown")
+                history = data.get("history", [])
+
+                # Lấy điểm cao nhất từ lịch sử
+                highest_score = max([entry.get("score", 0) for entry in history], default=0)
+
+                # Thêm vào danh sách leaderboard nếu có điểm
+                if highest_score > 0:
+                    leaderboard.append({
+                        "name": name,
+                        "score": highest_score
+                    })
+
+            # Sắp xếp theo điểm số giảm dần
+            leaderboard = sorted(leaderboard, key=lambda x: x["score"], reverse=True)
+
+            # Chỉ trả về top 10
+            leaderboard = leaderboard[:10]
+
+            print("Final leaderboard data:", leaderboard)
+            return JsonResponse({"leaderboard": leaderboard}, status=200)
+
+        except Exception as e:
+            print(f"Error fetching leaderboard: {e}")
+            return JsonResponse({"error": "An error occurred while fetching the leaderboard."}, status=500)

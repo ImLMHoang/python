@@ -49,8 +49,7 @@ class SnakeLogic(object):
             "foodPosition": self.foodPosition.to_dict() if isinstance(self.foodPosition, Node) else self.foodPosition,
             "obstaclePosition": [obstacle.to_dict() for obstacle in self.obstaclePosition if isinstance(obstacle, Node)]
     }
-        
-    # THÊM 
+
     def load_from_state(self, state):
         self.gameOver = state["gameOver"]
         self.score = state["score"]
@@ -62,7 +61,6 @@ class SnakeLogic(object):
         self.snakeSegments = [Node(segment["row"], segment["col"]) for segment in state["snakeSegments"]]
         self.foodPosition = Node(state["foodPosition"]["row"], state["foodPosition"]["col"]) if state["foodPosition"] else None
         self.obstaclePosition = [Node(obstacle["row"], obstacle["col"]) for obstacle in state["obstaclePosition"]]
-    # THÊM
 
     def isGameRunning(self):
         return self.gameStarted and not self.gameOver
@@ -150,22 +148,25 @@ class SnakeLogic(object):
             self.moveSnake(row_diff, col_diff)
 
     def loadSnakeBoard(self, size):
-        """Khởi tạo danh sách 2D của snakeboard, đặt mặc định đầu rắn sẽ ở giữa màn hình
-           thức ăn đặt rando
-           0 = empty space
-           -1 = food
-           -3 = obstacle
-           >1 = snake"""
+        """Khởi tạo lại trò chơi với kích thước bảng mới và reset trạng thái"""
         self.boardSize = size
         self.snakeBoard = [[0 for _ in range(size)] for _ in range(size)]
+        self.snakeHead = None  # Đặt lại đầu rắn
+        self.snakeSegments = []  # Đặt lại các đoạn thân rắn
+        self.foodPosition = None  # Đặt lại vị trí thức ăn
+        self.obstaclePosition = []  # Đặt lại các chướng ngại vật
+        self.score = 0  # Reset điểm số về 0
+        self.gameOver = False  # Đặt lại trạng thái game
+        self.canMove = True  # Cho phép rắn di chuyển
+        self.direction = ""  # Reset hướng di chuyển
         mid = size // 2
-        self.snakeHead = Node(mid, mid)  # Đặt vị trí đầu rắn
-        self.snakeSegments = [self.snakeHead]  # Khởi tạo thân rắn chỉ với đầu rắn ban đầu
-        self.snakeBoard[mid][mid] = 1 
+        self.snakeHead = Node(mid, mid)  # Đặt đầu rắn ở giữa bảng
+        self.snakeSegments = [self.snakeHead]  # Chỉ khởi tạo thân rắn với đầu rắn ban đầu
+        self.snakeBoard[mid][mid] = 1  # Gắn giá trị đầu rắn vào bảng
+        self.makeFood()  # Tạo thức ăn
+        self.makeObstacles()  # Tạo chướng ngại vật
         
-        self.makeFood()
-        self.makeObstacles()
-
+    
     def setPositions(self):
         """đảm bảo rằng các logic di chuyển, kiểm tra va chạm, và tìm đường trong trò chơi hoạt động đúng cách"""
         maxVal = self.snakeLength()

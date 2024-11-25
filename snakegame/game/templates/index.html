@@ -1,61 +1,100 @@
-     {% load static %}
-     <!DOCTYPE html>
-     <html lang="en">
-     <head>
-         <meta charset="UTF-8">
-         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-         <title>Snake Game - Group 3</title>
-         <link rel="stylesheet" href="{% static 'css/style.css' %}">
-     </head>
-     <body>
-         <!-- Màn hình chào -->
-         <div id="welcome-screen">
-             <h1>Welcome to Snake Game - Group 3!</h1>
-             <button onclick="showGame()">Start Game</button>
-             <p>Use arrow keys to move! Press RESET to Restart your game!</p>
-             <p>Press A* Run to watch the A* Algorithm Snake Player!</p>
-         </div>
-     
-         <!-- Màn hình trò chơi -->
-         <div id="game-screen" style="display: none;">
-             <div class="main-container">
-                 <!-- Phần ghi chú -->
-                 <div id="info">
-                     <h2>GHI CHÚ</h2>
-                     <ul>
-                         <li><span class="highlight palevioletred"></span> Trái dâu là thức ăn</li>
-                         <li><span class="highlight brown"></span> Thợ săn là chướng ngại vật</li>
-                         <li><span class="highlight green"></span> Con rắn có màu xanh</li>
-                         <li><span class="highlight"></span> Reset: Điều chỉnh kích thước bảng</li>
-                         <li><span class="highlight"></span> A* Run: Chế độ AI</li>
-                         <li><span class="highlight"></span> Người chơi: Chế độ người chơi</li>
-                     </ul>
-                 </div>
-     
-                 <!-- Khu vực game -->
-                 <div id="game-area">
-                     <div id="game-board"></div>
-                     <div class="controls">
-                         <label>Board Size: <input id="board-size" type="number" min="10" max="14" value="10"></label>
-                         <button onclick="resetBoardSize()">RESET</button>
-                     </div>
-                     <button id="pause-button" onclick="togglePause()">Tạm dừng</button>
-                     <div id="board-size-display">Board Size: 10</div>
-                     <div class="mode-buttons">
-                         <button onclick="startPlayerMode()">Người chơi</button>
-                         <button onclick="startAStarMode()">A* Run</button>
-                     </div>
-                 </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game - Group 3</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <!-- Màn hình đăng nhập -->
+    <div id="login-screen">
+        <div id="login-form">
+            <h2>Login</h2>
+            <form onsubmit="login(event)">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
 
+    <body>
+        <!-- Màn hình chào -->
+        <div id="welcome-screen" style="display: none;">
+            <h1>Welcome to Snake Game - Group 3!</h1>
+            <button onclick="showGame()">Start Game</button>
+            <p>Use arrow keys to move! Press RESET to Restart your game!</p>
+            <p>Press A* Run to watch the A* Algorithm Snake Player!</p>
+        </div>
+    </body>
+    
 
-                 <div id="score-container">
-                    <h2>Điểm số</h2>
-                    <div id="score-display">0</div>
+    <!-- Màn hình trò chơi -->
+    <div id="game-screen" style="display: none;">
+        <div class="main-container">
+            <!-- Phần ghi chú -->
+            <div id="info">
+                <h2>GHI CHÚ</h2>
+                <ul>
+                    <li><span class="highlight palevioletred"></span> Trái dâu là thức ăn</li>
+                    <li><span class="highlight brown"></span> Thợ săn là chướng ngại vật</li>
+                    <li><span class="highlight green"></span> Con rắn có màu xanh</li>
+                    <li><span class="highlight"></span> Reset: Điều chỉnh kích thước bảng</li>
+                    <li><span class="highlight"></span> A* Run: Chế độ AI</li>
+                    <li><span class="highlight"></span> Người chơi: Chế độ người chơi</li>
+                </ul>
+            </div>
+
+           <!-- Bảng xếp hạng -->
+            <div id="leaderboard">
+                <h2>Bảng Xếp Hạng</h2>
+                <div id="leaderboard-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thứ hạng</th>
+                                <th>Người chơi</th>
+                                <th>Điểm số</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body">
+                        </tbody>
+                    </table>
                 </div>
-             </div>
-         </div>
-     
-         <script src="{% static 'js/script.js' %}"></script>
-     </body>
-     </html>
-     
+            </div>
+            
+            <!-- Khu vực game -->
+            <div id="game-area">
+                <div id="game-board"></div>
+                <div class="controls">
+                    <label>Board Size: <input id="board-size" type="number" min="10" max="14" value="10"></label>
+                    <button onclick="resetBoardSize()">RESET</button>
+                </div>
+                <button id="pause-button" onclick="togglePause()">Tạm dừng</button>
+                <div id="board-size-display">Board Size: 10</div>
+                <div class="mode-buttons">
+                    <button onclick="togglePlayerMode()">Người chơi</button>
+                    <button onclick="toggleAStarMode()">A* Run</button>
+                </div>
+            </div>
+
+
+            <div id="score-container">
+                <h2>Điểm số</h2>
+                <div id="score-display">0</div>
+            </div>
+
+            <div id="player-history" style="display: none;">
+                <h2>Player History</h2>
+                <div id="history-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

@@ -71,7 +71,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'snakegame.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -81,6 +80,23 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+
+# 
+import os
+import firebase_admin
+from firebase_admin import credentials
+
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+cred = credentials.Certificate(os.path.join(BASE_DIR, "snakegame/firebase/snakegamenhom3-firebase-adminsdk.json"))
+firebase_admin.initialize_app(cred)
+
+# 
+
+
 
 
 # Password validation
